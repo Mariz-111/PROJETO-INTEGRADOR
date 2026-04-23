@@ -2,62 +2,62 @@
 
 
 --CLIENTE
-CREATE TABLE IF NOT EXISTS cliente (
+CREATE TABLE cliente (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   telefone TEXT
 );
 
-
 --CATEGORIA
-CREATE TABLE IF NOT EXISTS categorias (
+CREATE TABLE categorias (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL
 );
 
-
---FORNECEDOR
-CREATE TABLE IF NOT EXISTS fornecedor (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nome_empresa TEXT NOT NULL,
-  cnpj VARCHAR(18),
-  telefone VARCHAR(15),
-  email TEXT UNIQUE NOT NULL,
-  endereco VARCHAR(200),
-  cidade VARCHAR(100),
-  estado VARCHAR(50),
-  cep VARCHAR(9)
-);
-
-
 --PRODUTOS
-CREATE TABLE IF NOT EXISTS produtos  (
+CREATE TABLE produtos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
-  categoria_id INTEGER NOT NULL,
+  categoria_id INTEGER,
   fornecedor_id INTEGER,
-  preco REAL,
+  preco DECIMAL(10,2),
   descricao TEXT,
   data_cadastro DATE DEFAULT CURRENT_DATE,
-  imagem_url TEXT,
-  marca TEXT,
-  
+  marca VARCHAR(100),
   FOREIGN KEY (fornecedor_id) REFERENCES fornecedor(id),
   FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
 
-
 --CUPONS
-CREATE TABLE IF NOT EXISTS cupons (
+CREATE TABLE cupons (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   codigo VARCHAR(20) UNIQUE,
   desconto DECIMAL(5,2),
   validade DATE
 );
 
+--COMPRAS
+CREATE TABLE compras (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER,
+  produto_id INTEGER,
+  metodo_pagamento VARCHAR(20),
+  status_pagamento VARCHAR(30),
+  data_pagamento DATE,
+  endereco_entrega TEXT,
+  status_entrega VARCHAR(40),
+  frete DECIMAL(10,2),
+  cupom_id INTEGER,
+  quantidade INTEGER,
+  valor_total DECIMAL(10,2),
+  FOREIGN KEY (usuario_id) REFERENCES cliente(id),
+  FOREIGN KEY (produto_id) REFERENCES produtos(id),
+  FOREIGN KEY (cupom_id) REFERENCES cupons(id)
+);
+
 --USUARIO
-CREATE TABLE IF NOT EXISTS area_do_usuario (
+CREATE TABLE area_do_usuario (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER,
   localizacao VARCHAR(100),
@@ -72,9 +72,8 @@ CREATE TABLE IF NOT EXISTS area_do_usuario (
   FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );
 
-
 --ESTOQUE
-CREATE TABLE IF NOT EXISTS estoque (
+CREATE TABLE estoque (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   produto_id INTEGER,
   quantidade INT,
@@ -85,16 +84,14 @@ CREATE TABLE IF NOT EXISTS estoque (
   FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
-
 --PAGAMENTO
-CREATE TABLE IF NOT EXISTS forma_de_pagamento (
+CREATE TABLE forma_de_pagamento (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tipo_de_pagamento VARCHAR(20)
 );
 
-
 --PEDIDOS
-CREATE TABLE IF NOT EXISTS pedidos (
+CREATE TABLE pedidos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER,
   data_pedido DATE,
@@ -107,9 +104,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
   FOREIGN KEY (pagamento_id) REFERENCES forma_de_pagamento(id)
 );
 
-
 --ITENS PEDIDOS
-CREATE TABLE IF NOT EXISTS itens_pedido (
+CREATE TABLE itens_pedido (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   pedido_id INTEGER,
   produto_id INTEGER,
@@ -119,9 +115,19 @@ CREATE TABLE IF NOT EXISTS itens_pedido (
   FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
+--ITENS COMPRA
+CREATE TABLE itens_compra (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  compra_id INTEGER,
+  produto_id INTEGER,
+  quantidade INTEGER,
+  preco_unitario DECIMAL(10,2),
+  FOREIGN KEY (compra_id) REFERENCES compras(id),
+  FOREIGN KEY (produto_id) REFERENCES produtos(id)
+);
 
 --AVALIAÇÃO
-CREATE TABLE IF NOT EXISTS avaliacao (
+CREATE TABLE avaliacao (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   usuario_id INTEGER,
   produto_id INTEGER,
@@ -133,14 +139,13 @@ CREATE TABLE IF NOT EXISTS avaliacao (
 );
 
 --STATUS PEDIDOS
-CREATE TABLE IF NOT EXISTS status_pedido (
+CREATE TABLE status_pedido (
   id INTEGER PRIMARY KEY,
   codigo TEXT UNIQUE NOT NULL CHECK (codigo IN ('pendente', 'pago', 'enviado', 'entregue', 'cancelado'))
 );
 
-
 --RELATORIO DE ESTOQUE
-CREATE TABLE IF NOT EXISTS estoque_relatorio (
+CREATE TABLE estoque_relatorio (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   produto_id INTEGER,
   entrada_de_mercadoria DATE,
@@ -150,9 +155,8 @@ CREATE TABLE IF NOT EXISTS estoque_relatorio (
   FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
-
 --ADM
-CREATE TABLE IF NOT EXISTS usuario_adm (
+CREATE TABLE usuario_adm (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT UNIQUE NOT NULL,
   senha TEXT NOT NULL,
@@ -162,9 +166,8 @@ CREATE TABLE IF NOT EXISTS usuario_adm (
   FOREIGN KEY (estoque_relatorio_id) REFERENCES estoque_relatorio(id)
 );
 
-
 --FUNCIONARIO
-CREATE TABLE IF NOT EXISTS funcionario (
+CREATE TABLE funcionario (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
   cargo VARCHAR(50),
@@ -174,44 +177,21 @@ CREATE TABLE IF NOT EXISTS funcionario (
   data_contratacao DATE
 );
 
-
---TAMANHO
-CREATE TABLE IF NOT EXISTS tamanho (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  produto_id INT,
-  tamanho VARCHAR(5),
-  quantidade INT,
-  FOREIGN KEY (produto_id) REFERENCES produtos(id)
-);
-
-CREATE TABLE status_produto (
-  
 -----INDEX-----
-
 
 CREATE INDEX idx_email ON cliente(email);
 CREATE INDEX idx_produto ON produtos(nome, categoria_id, fornecedor_id);
 CREATE INDEX idx_categoria ON categorias(nome);
-CREATE INDEX idx_fornecedor ON fornecedor(cnpj, nome_empresa);
 CREATE INDEX idx_pedido ON pedidos(cliente_id, pagamento_id, data_pedido);
 CREATE INDEX idx_itens_do_pedido ON itens_pedido(pedido_id, produto_id);
 CREATE INDEX idx_pagamento ON pedidos(pagamento_id, status_id);
-CREATE INDEX idx_funcionario ON funcionario(email, nome);
 CREATE INDEX idx_estoque ON estoque(produto_id);
 CREATE INDEX idx_compras ON compras(usuario_id, produto_id, data_pagamento);
 CREATE INDEX idx_avaliacao ON avaliacao(usuario_id, produto_id);
 CREATE INDEX idx_itens_compra ON itens_compra(compra_id, produto_id);
-CREATE INDEX idx_produto_cor ON filtro_de_cor(produto_id, cor);
 CREATE INDEX idx_status_pedido ON pedidos(status_id);
 CREATE INDEX idx_itens_produto ON itens_pedido(produto_id);
 CREATE INDEX idx_produto_preco ON produtos(preco);
 CREATE INDEX idx_usuario_email ON area_do_usuario(email);
 CREATE INDEX idx_usuario_cpf ON area_do_usuario(cpf);
-CREATE INDEX idx_tamanho_produto ON tamanho(produto_id);
 CREATE INDEX idx_status_pagamento ON compras(status_pagamento);
-
-
------INSERTS-----
-
-
---CLIENTE
