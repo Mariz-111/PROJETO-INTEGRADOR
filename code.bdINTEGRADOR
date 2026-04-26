@@ -233,14 +233,13 @@ CREATE INDEX idx_status_pagamento ON compras(status_pagamento);
 
 
 --CLIENTE
-INSERT INTO cliente (id, nome, email, telefone)
-VALUES
-
-(
-(
-(
-(
-(
+INSERT INTO cliente (nome, email, telefone)
+VALUES 
+    ('João Silva', 'joao@email.com', '11999999999'),
+    ('Maria Souza', 'maria@email.com', '11988888888'),
+    ('Carlos Lima', 'carlos@email.com', '11977777777'),
+    ('Ana Costa', 'ana@email.com', '11966666666'),
+    ('Pedro Santos', 'pedro@email.com', '11955555555');
 
 
 --CATEGORIA
@@ -394,6 +393,8 @@ VALUES
 ('Bruno Lima','Estoquista',2200.00,'11999887766','bruno@empresa.com','2019-05-20');
   
 
+  
+  
 SELECT
   p.nome,
   c.nome AS categoria,
