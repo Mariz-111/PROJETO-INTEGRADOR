@@ -394,43 +394,43 @@ VALUES
 ('Bruno Lima','Estoquista',2200.00,'11999887766','bruno@empresa.com','2019-05-20');
   
 
-SELECT 
-p.nome,
-c.nome AS categoria,
-p.preco
+SELECT
+  p.nome,
+  c.nome AS categoria,
+  p.preco
 FROM produtos p
 JOIN categorias c ON p.categoria_id = c.id;
 
   
 SELECT 
-p.nome,
-e.quantidade
+  p.nome,
+  e.quantidade
 FROM produtos p
 JOIN estoque e ON e.produto_id = p.id; 
 
   
 SELECT 
-c.nome,
-p.nome AS produto,
-co.quantidade,
-co.valor_total
+  c.nome,
+  p.nome AS produto,
+  co.quantidade,
+  co.valor_total
 FROM compras co
 JOIN cliente c ON co.usuario_id = c.id
 JOIN produtos p ON co.produto_id = p.id;
   
   
 SELECT 
-p.id,
-c.nome,
-p.data_pedido,
-p.subtotal
+  p.id,
+  c.nome,
+  p.data_pedido,
+  p.subtotal
 FROM pedidos p
 JOIN cliente c ON p.cliente_id = c.id;
   
   
 SELECT 
-p.id,
-s.codigo AS status,
-p.data_pedido
+  p.id,
+  s.codigo AS status,
+  p.data_pedido
 FROM pedidos p
 JOIN status_pedido s ON p.status_id = s.id;
