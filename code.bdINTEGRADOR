@@ -9,7 +9,7 @@ CREATE TABLE produto (
   descricao TEXT
 );
 
---CUPON
+--CUPOM
 CREATE TABLE cupom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   codigo VARCHAR(20) UNIQUE,
@@ -30,8 +30,8 @@ CREATE TABLE compra (
   quantidade INTEGER,
   valor_total DECIMAL(10,2),
   FOREIGN KEY (usuario_id) REFERENCES cliente(id),
-  FOREIGN KEY (produto_id) REFERENCES produtos(id),
-  FOREIGN KEY (cupom_id) REFERENCES cupon(id)
+  FOREIGN KEY (produto_id) REFERENCES produto(id),
+  FOREIGN KEY (cupom_id) REFERENCES cupom(id)
 );
 
 --CLIENTE
@@ -50,9 +50,8 @@ CREATE TABLE forma_de_pagamento (
   tipo_de_pagamento VARCHAR(20)
 );
 
-
 --PEDIDO
-CREATE TABLE pedidos (
+CREATE TABLE pedido (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER,
   data_pedido DATE,
@@ -65,17 +64,38 @@ CREATE TABLE pedidos (
   FOREIGN KEY (pagamento_id) REFERENCES forma_de_pagamento(id)
 );
 
+---ENDEREÇO
+CREATE TABLE endereco (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER,
+  rua TEXT NOT NULL,
+  numero VARCHAR(10),
+  bairro TEXT,
+  cidade TEXT,
+  estado VARCHAR(2),
+  cep VARCHAR(10),
+  complemento TEXT,
+  FOREIGN KEY (cliente_id) REFERENCES cliente(id)
+);
 
 -----INDEX-----
 
 
 CREATE INDEX idx_email ON cliente(email);
-create INDEX idx
-CREATE INDEX idx
-CREATE INDEX idx
-CREATE INDEX idx
-
-
+create INDEX idx_cpf ON cliente(cpf);
+CREATE INDEX idx_produto_nome ON produto(nome);
+CREATE INDEX idx_cupom_codigo ON cupom(codigo);
+CREATE INDEX idx_cupom_validade ON cupom(validade);
+CREATE INDEX idx_compra_produto_id ON compra(produto_id);
+CREATE INDEX idx_compra_cupom_id ON compra(cupom_id);
+CREATE INDEX idx_compra_data_pagamento ON compra(data_pagamento);
+CREATE INDEX idx_pedido_cliente_id ON pedido(cliente_id);
+CREATE INDEX idx_pedido_pagamento_id ON pedido(pagamento_id);
+CREATE INDEX idx_pedido_status_id ON pedido(status_id);
+CREATE INDEX idx_pedido_data ON pedido(data_pedido);
+CREATE INDEX idx_endereco_cliente_id ON endereco(cliente_id);
+CREATE INDEX idx_endereco_cep ON endereco(cep);
+CREATE INDEX idx_endereco_cidade ON endereco(cidade);
 -----INSERTS-----
 
 
@@ -85,17 +105,17 @@ VALUES
 (1,'fernando','fernando10@gmail.com',13997097821);
 
 --PRODUTO
-INSERT INTO produto (id, nome, fornecedor_id, preco, marca, descricao, data_cadastro)
+INSERT INTO produto (id, nome, preco, descricao, data_cadastro)
 VALUES
 (1, 'Spray para espinhas', 1, 60.00, 'Bellevisage', 'Calmante', '2026-05-02');
 
---CUPON
-INSERT INTO cupon (id, codigo, desconto, validade)
+--CUPOM
+INSERT INTO cupom (id, codigo, desconto, validade)
 VALUES
 (1, 'BELLEVISAGE10', 20.00, '05-07-2026');
 
 --COMPRA
-INSERT INTO compra (id, produto_id, metodo_pagamento, data_pagamento, status_pagamento, endereco_entrega, status_entrega, frete, cupom_id, quantidade, valor_total)
+INSERT INTO compra (id, produto_id, metodo_pagamento, data_pagamento, status_pagamento,status_entrega, frete, cupom_id, quantidade, valor_total)
 VALUES
 (1, 1, 'Cartão de Crédito', '2026-05-10', 'Pago', 'Rua das flores, 123', 'Em processamento', 20.00, 1, 1, 40.00);
   
@@ -111,5 +131,49 @@ VALUES
 INSERT INTO pedido (cliente_id, pagamento_id, status_id, data_pedido, subtotal, frete)
 VALUES
 (1, 3, 1, '2026-05-01', 40.00, 20.00);
- 
+
+--ENDEREÇO
+INSERT INTO endereco (cliente_id, rua, numero, bairro, cidade, estado, cep, complemento)
+VALUES
+(1, 'Rua das Flores', '123', 'Centro', 'Votorantim', 'SP', '18110-000', 'Casa');
+
 -----SELECT-----
+--EXIBIR O PRODUTO NO SITE
+SELECT nome, preco, descricao
+FROM produto
+WHERE id = 1;
+
+--VERIFICAR SE EXISTE CUPOM VALIDO
+SELECT codigo, desconto
+FROM cupom
+WHERE validade >= DATE('now');
+
+--SIMULAR VALOR COM DESCONTO(PRODUTO + CUPOM)
+SELECT 
+  p.nome,
+  p.preco,
+  c.desconto,
+  (p.preco - c.desconto) AS preco_com_desconto
+FROM produto p
+JOIN cupom c ON c.id = 1
+WHERE p.id = 1;
+
+--VER STATUS DE UMA COMPRA
+SELECT status_pagamento, status_entrega
+FROM compra
+WHERE id = 1;
+
+--BUSCAR DADOS DO CLIENTE(PERFIL SIMPLES)
+SELECT nome, email
+FROM cliente
+WHERE id = 1;
+
+--MOSTRAR ENDEREÇO DO CLIENTE
+SELECT rua, numero, cidade, estado
+FROM endereco
+WHERE cliente_id = 1;
+
+--RESUMO DO PEDIDO
+SELECT subtotal, frete, (subtotal + frete) AS total
+FROM pedido
+WHERE cliente_id = 1;
