@@ -5,7 +5,7 @@ CREATE TABLE produto (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
   preco DECIMAL(10,2),
-  estoque VARCHAR(100),
+  estoque INTEGER(100),
   descricao TEXT
 );
 
@@ -14,12 +14,13 @@ CREATE TABLE cupom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   codigo VARCHAR(20) UNIQUE,
   desconto DECIMAL(5,2),
-  validade DATE
+  validade TEXT
 );
 
 --COMPRA
 CREATE TABLE compra (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER,
   produto_id INTEGER,
   metodo_pagamento VARCHAR(20),
   status_pagamento VARCHAR(30),
@@ -29,7 +30,7 @@ CREATE TABLE compra (
   cupom_id INTEGER,
   quantidade INTEGER,
   valor_total DECIMAL(10,2),
-  FOREIGN KEY (usuario_id) REFERENCES cliente(id),
+  FOREIGN KEY (cliente_id) REFERENCES cliente(id),
   FOREIGN KEY (produto_id) REFERENCES produto(id),
   FOREIGN KEY (cupom_id) REFERENCES cupom(id)
 );
@@ -41,7 +42,7 @@ CREATE TABLE cliente (
   telefone VARCHAR(13),
   cpf TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
-  senha TEXT
+  senha TEXT NOT NULL
 );
 
 --PAGAMENTO
@@ -54,9 +55,9 @@ CREATE TABLE forma_de_pagamento (
 CREATE TABLE pedido (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER,
-  data_pedido DATE,
+  data_pedido TEXT,
   pagamento_id INTEGER,
-  status_id INTEGER,
+  status_pedido INTEGER,
   subtotal DECIMAL(6,2),
   frete DECIMAL(6,2),
   FOREIGN KEY (status_id) REFERENCES status_pedido(id),
@@ -105,9 +106,9 @@ VALUES
 (1,'fernando','fernando10@gmail.com',13997097821);
 
 --PRODUTO
-INSERT INTO produto (id, nome, preco, descricao, data_cadastro)
+INSERT INTO produto (id, nome, preco, descricao)
 VALUES
-(1, 'Spray para espinhas', 1, 60.00, 'Bellevisage', 'Calmante', '2026-05-02');
+(1, 'Spray para espinhas', 60.00, 'Calmante');
 
 --CUPOM
 INSERT INTO cupom (id, codigo, desconto, validade)
@@ -115,9 +116,9 @@ VALUES
 (1, 'BELLEVISAGE10', 20.00, '05-07-2026');
 
 --COMPRA
-INSERT INTO compra (id, produto_id, metodo_pagamento, data_pagamento, status_pagamento,status_entrega, frete, cupom_id, quantidade, valor_total)
+INSERT INTO compra (id, produto_id, metodo_pagamento, data_pagamento, status_pagamento, status_entrega, frete, cupom_id, quantidade, valor_total)
 VALUES
-(1, 1, 'Cartão de Crédito', '2026-05-10', 'Pago', 'Rua das flores, 123', 'Em processamento', 20.00, 1, 1, 40.00);
+(1, 1, 'Cartão de Crédito', '2026-05-10', 'Pago', 'Em processamento', 20.00, 1, 1, 40.00);
   
 --PAGAMENTO
 INSERT INTO forma_de_pagamento (id, tipo_de_pagamento)
@@ -128,9 +129,9 @@ VALUES
 (4,'Boleto');
 
 --PEDIDO
-INSERT INTO pedido (cliente_id, pagamento_id, status_id, data_pedido, subtotal, frete)
+INSERT INTO pedido (id, cliente_id, pagamento_id, data_pedido, status_pedido, subtotal, frete)
 VALUES
-(1, 3, 1, '2026-05-01', 40.00, 20.00);
+(1, 3, '2026-05-01',  40.00, 'Em Processo', 20.00);
 
 --ENDEREÇO
 INSERT INTO endereco (cliente_id, rua, numero, bairro, cidade, estado, cep, complemento)
