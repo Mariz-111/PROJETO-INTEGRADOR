@@ -5,30 +5,31 @@ CREATE TABLE produto (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
   preco DECIMAL(10,2),
-  estoque INTEGER(100),
+  estoque TEXT NOT NULL DEFAULT 0,
   descricao TEXT
 );
 
 --CUPOM
 CREATE TABLE cupom (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  codigo VARCHAR(20) UNIQUE,
+  codigo TEXT UNIQUE NOT NULL,
   desconto DECIMAL(5,2),
-  validade TEXT
+  validade TEXT NOT NULL
 );
 
 --COMPRA
 CREATE TABLE compra (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cliente_id INTEGER,
-  produto_id INTEGER,
-  metodo_pagamento VARCHAR(20),
-  status_pagamento VARCHAR(30),
-  data_pagamento DATE,
-  status_entrega VARCHAR(40),
+  cliente_id INTEGER NOT NULL,
+  produto_id INTEGER NOT NULL,
+  metodo_pagamento TEXT NOT NULL,
+  status_pagamento TEXT NOT NULL DEFAULT,
+  data_pagamento TEXT,
+  status_entrega TEXT NOT NULL DEFAULT,
   frete DECIMAL(10,2),
   cupom_id INTEGER,
-  quantidade INTEGER,
+  quantidade INTEGER NOT NULL,
+  subtotal DECIMAL(10,2),
   valor_total DECIMAL(10,2),
   FOREIGN KEY (cliente_id) REFERENCES cliente(id),
   FOREIGN KEY (produto_id) REFERENCES produto(id),
@@ -39,25 +40,25 @@ CREATE TABLE compra (
 CREATE TABLE cliente (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
-  telefone VARCHAR(13),
+  telefone TEXT(13),
   cpf TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
   senha TEXT NOT NULL
 );
 
 --PAGAMENTO
-CREATE TABLE forma_de_pagamento (
+CREATE TABLE formapagamento (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tipo_de_pagamento VARCHAR(20)
+  tipopagamento TEXT NOT NULL
 );
 
 --PEDIDO
 CREATE TABLE pedido (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cliente_id INTEGER,
-  data_pedido TEXT,
-  pagamento_id INTEGER,
-  status_pedido INTEGER,
+  cliente_id INTEGER NOT NULL,
+  data_pedido TEXT NOT NULL,
+  pagamento_id INTEGER NOT NULL,
+  status_pedido TEXT NOT NULL,
   subtotal DECIMAL(6,2),
   frete DECIMAL(6,2),
   FOREIGN KEY (status_id) REFERENCES status_pedido(id),
@@ -68,13 +69,13 @@ CREATE TABLE pedido (
 ---ENDEREÇO
 CREATE TABLE endereco (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cliente_id INTEGER,
+  cliente_id INTEGER NOT NULL,
   rua TEXT NOT NULL,
-  numero VARCHAR(10),
+  numero TEXT NOT NULL,
   bairro TEXT,
   cidade TEXT,
-  estado VARCHAR(2),
-  cep VARCHAR(10),
+  estado TEXT,
+  cep TEXT,
   complemento TEXT,
   FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );
@@ -99,82 +100,70 @@ CREATE INDEX idx_endereco_cep ON endereco(cep);
 CREATE INDEX idx_endereco_cidade ON endereco(cidade);
 -----INSERTS-----
 
+-- CLIENTE
+INSERT INTO cliente (id, nome, email, telefone, cpf, senha)
+VALUES (1, 'Fernando', 'fernando10@gmail.com', '13997097821', '123.456.789-00', 'senha_segura');
 
---CLIENTE
-INSERT INTO cliente (id, nome, email, telefone)
-VALUES
-(1,'fernando','fernando10@gmail.com',13997097821);
+-- PRODUTO
+INSERT INTO produto (id, nome, preco, estoque, descricao)
+VALUES (1, 'Spray para espinhas', 60.00, 100, 'Calmante');
 
---PRODUTO
-INSERT INTO produto (id, nome, preco, descricao)
-VALUES
-(1, 'Spray para espinhas', 60.00, 'Calmante');
-
---CUPOM
+-- CUPOM
 INSERT INTO cupom (id, codigo, desconto, validade)
-VALUES
-(1, 'BELLEVISAGE10', 20.00, '05-07-2026');
+VALUES (1, 'BELLEVISAGE10', 20.00, '2026-07-05');
 
---COMPRA
-INSERT INTO compra (id, produto_id, metodo_pagamento, data_pagamento, status_pagamento, status_entrega, frete, cupom_id, quantidade, valor_total)
-VALUES
-(1, 1, 'Cartão de Crédito', '2026-05-10', 'Pago', 'Em processamento', 20.00, 1, 1, 40.00);
-  
---PAGAMENTO
+-- FORMA DE PAGAMENTO
 INSERT INTO forma_de_pagamento (id, tipo_de_pagamento)
-VALUES
-(1,'Cartão de Crédito'),
-(2,'Cartão de Débito'),
-(3,'Pix'),
-(4,'Boleto');
+VALUES 
+(1, 'Cartão de Crédito'),
+(2, 'Cartão de Débito'),
+(3, 'Pix'),
+(4, 'Boleto');
 
---PEDIDO
+-- COMPRA
+INSERT INTO compra (id, cliente_id, produto_id, metodo_pagamento, data_pagamento, status_pagamento, status_entrega, frete, cupom_id, quantidade, subtotal, valor_total)
+VALUES (1, 1, 1, 'Cartão de Crédito', '2026-05-10', 'Pago', 'Em processamento', 20.00, 1, 1, 60.00, 60.00);
+
+-- PEDIDO
 INSERT INTO pedido (id, cliente_id, pagamento_id, data_pedido, status_pedido, subtotal, frete)
-VALUES
-(1, 3, '2026-05-01',  40.00, 'Em Processo', 20.00);
+VALUES (1, 1, 1, '2026-05-01', 'Em Processo', 40.00, 20.00);
 
---ENDEREÇO
+-- ENDEREÇO
 INSERT INTO endereco (cliente_id, rua, numero, bairro, cidade, estado, cep, complemento)
-VALUES
-(1, 'Rua das Flores', '123', 'Centro', 'Votorantim', 'SP', '18110-000', 'Casa');
+VALUES (1, 'Rua das Flores', '123', 'Centro', 'Votorantim', 'SP', '18110-000', 'Casa');
 
 -----SELECT-----
---EXIBIR O PRODUTO NO SITE
-SELECT nome, preco, descricao
+
+---detalhes e descricao do produto
+SELECT nome, preco, descricao, estoque
 FROM produto
 WHERE id = 1;
 
---VERIFICAR SE EXISTE CUPOM VALIDO
+---validade do cupom
 SELECT codigo, desconto
 FROM cupom
-WHERE validade >= DATE('now');
+WHERE codigo = 'BELLEVISAGE10' AND validade
+>=DATE('now');
 
---SIMULAR VALOR COM DESCONTO(PRODUTO + CUPOM)
+---exibe o perfil do cliente e seu endereco
 SELECT 
-  p.nome,
-  p.preco,
-  c.desconto,
-  (p.preco - c.desconto) AS preco_com_desconto
-FROM produto p
-JOIN cupom c ON c.id = 1
-WHERE p.id = 1;
+    c.nome, 
+    c.email, 
+    c.telefone,
+    e.rua, 
+    e.numero, 
+    e.cidade, 
+    e.estado, 
+    e.cep
+FROM cliente c
+LEFT JOIN endereco e ON e.cliente_id = c.id
+WHERE c.id = 1;
 
---VER STATUS DE UMA COMPRA
-SELECT status_pagamento, status_entrega
-FROM compra
-WHERE id = 1;
-
---BUSCAR DADOS DO CLIENTE(PERFIL SIMPLES)
-SELECT nome, email
-FROM cliente
-WHERE id = 1;
-
---MOSTRAR ENDEREÇO DO CLIENTE
-SELECT rua, numero, cidade, estado
-FROM endereco
-WHERE cliente_id = 1;
-
---RESUMO DO PEDIDO
-SELECT subtotal, frete, (subtotal + frete) AS total
+---simplifica valor das compras
+SELECT 
+    subtotal, 
+    frete, 
+    (subtotal + frete) AS valor_total_a_pagar,
+    status_pedido
 FROM pedido
 WHERE cliente_id = 1;
