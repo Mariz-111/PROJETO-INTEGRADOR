@@ -1,73 +1,72 @@
------TABELAS-----
+----- TABELAS -----
 
---PRODUTO
-CREATE TABLE produto (
+-- 1. CLIENTE
+CREATE TABLE IF NOT EXISTS cliente (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
-  preco DECIMAL(10,2),
-  estoque TEXT NOT NULL DEFAULT 0,
-  descricao TEXT
-);
-
---CUPOM
-CREATE TABLE cupom (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  codigo TEXT UNIQUE NOT NULL,
-  desconto DECIMAL(5,2),
-  validade TEXT NOT NULL
-);
-
---COMPRA
-CREATE TABLE compra (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  cliente_id INTEGER NOT NULL,
-  produto_id INTEGER NOT NULL,
-  metodo_pagamento TEXT NOT NULL,
-  status_pagamento TEXT NOT NULL DEFAULT,
-  data_pagamento TEXT,
-  status_entrega TEXT NOT NULL DEFAULT,
-  frete DECIMAL(10,2),
-  cupom_id INTEGER,
-  quantidade INTEGER NOT NULL,
-  subtotal DECIMAL(10,2),
-  valor_total DECIMAL(10,2),
-  FOREIGN KEY (cliente_id) REFERENCES cliente(id),
-  FOREIGN KEY (produto_id) REFERENCES produto(id),
-  FOREIGN KEY (cupom_id) REFERENCES cupom(id)
-);
-
---CLIENTE
-CREATE TABLE cliente (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nome TEXT NOT NULL,
-  telefone TEXT(13),
+  telefone TEXT,
   cpf TEXT UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
   senha TEXT NOT NULL
 );
 
---PAGAMENTO
-CREATE TABLE formapagamento (
+-- 2. PRODUTO
+CREATE TABLE IF NOT EXISTS produto (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tipopagamento TEXT NOT NULL
+  nome TEXT NOT NULL,
+  preco REAL NOT NULL,
+  estoque INTEGER NOT NULL DEFAULT 0,
+  descricao TEXT
 );
 
---PEDIDO
-CREATE TABLE pedido (
+-- 3. CUPOM
+CREATE TABLE IF NOT EXISTS cupom (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  codigo TEXT UNIQUE NOT NULL,
+  desconto REAL NOT NULL,
+  validade TEXT NOT NULL
+);
+
+-- 4. FORMA DE PAGAMENTO
+CREATE TABLE IF NOT EXISTS forma_de_pagamento (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tipo_de_pagamento TEXT NOT NULL
+);
+
+-- 5. COMPRA
+CREATE TABLE IF NOT EXISTS compra (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER NOT NULL,
+  produto_id INTEGER NOT NULL,
+  metodo_pagamento TEXT NOT NULL,
+  status_pagamento TEXT NOT NULL DEFAULT 'Pendente',
+  data_pagamento TEXT,
+  status_entrega TEXT NOT NULL DEFAULT 'Em processamento',
+  frete REAL NOT NULL DEFAULT 0.0,
+  cupom_id INTEGER,
+  quantidade INTEGER NOT NULL,
+  subtotal REAL NOT NULL,
+  valor_total REAL NOT NULL,
+  FOREIGN KEY (cliente_id) REFERENCES cliente(id),
+  FOREIGN KEY (produto_id) REFERENCES produto(id),
+  FOREIGN KEY (cupom_id) REFERENCES cupom(id)
+);
+
+-- 6. PEDIDO
+CREATE TABLE IF NOT EXISTS pedido (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER NOT NULL,
   data_pedido TEXT NOT NULL,
   pagamento_id INTEGER NOT NULL,
   status_pedido TEXT NOT NULL,
-  subtotal DECIMAL(6,2),
-  frete DECIMAL(6,2),
-  FOREIGN KEY (status_id) REFERENCES status_pedido(id),
+  subtotal REAL NOT NULL,
+  frete REAL NOT NULL,
   FOREIGN KEY (cliente_id) REFERENCES cliente(id),
   FOREIGN KEY (pagamento_id) REFERENCES forma_de_pagamento(id)
 );
 
----ENDEREÇO
-CREATE TABLE endereco (
+-- 7. ENDEREÇO
+CREATE TABLE IF NOT EXISTS endereco (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   cliente_id INTEGER NOT NULL,
   rua TEXT NOT NULL,
@@ -80,25 +79,23 @@ CREATE TABLE endereco (
   FOREIGN KEY (cliente_id) REFERENCES cliente(id)
 );
 
------INDEX-----
+----- INDEX -----
 
+CREATE INDEX IF NOT EXISTS idx_email ON cliente(email);
+CREATE INDEX IF NOT EXISTS idx_cpf ON cliente(cpf);
+CREATE INDEX IF NOT EXISTS idx_produto_nome ON produto(nome);
+CREATE INDEX IF NOT EXISTS idx_cupom_codigo ON cupom(codigo);
+CREATE INDEX IF NOT EXISTS idx_cupom_validade ON cupom(validade);
+CREATE INDEX IF NOT EXISTS idx_compra_produto_id ON compra(produto_id);
+CREATE INDEX IF NOT EXISTS idx_compra_cupom_id ON compra(cupom_id);
+CREATE INDEX IF NOT EXISTS idx_pedido_cliente_id ON pedido(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_pedido_pagamento_id ON pedido(pagamento_id);
+CREATE INDEX IF NOT EXISTS idx_pedido_data ON pedido(data_pedido);
+CREATE INDEX IF NOT EXISTS idx_endereco_cliente_id ON endereco(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_endereco_cep ON endereco(cep);
+CREATE INDEX IF NOT EXISTS idx_endereco_cidade ON endereco(cidade);
 
-CREATE INDEX idx_email ON cliente(email);
-create INDEX idx_cpf ON cliente(cpf);
-CREATE INDEX idx_produto_nome ON produto(nome);
-CREATE INDEX idx_cupom_codigo ON cupom(codigo);
-CREATE INDEX idx_cupom_validade ON cupom(validade);
-CREATE INDEX idx_compra_produto_id ON compra(produto_id);
-CREATE INDEX idx_compra_cupom_id ON compra(cupom_id);
-CREATE INDEX idx_compra_data_pagamento ON compra(data_pagamento);
-CREATE INDEX idx_pedido_cliente_id ON pedido(cliente_id);
-CREATE INDEX idx_pedido_pagamento_id ON pedido(pagamento_id);
-CREATE INDEX idx_pedido_status_id ON pedido(status_id);
-CREATE INDEX idx_pedido_data ON pedido(data_pedido);
-CREATE INDEX idx_endereco_cliente_id ON endereco(cliente_id);
-CREATE INDEX idx_endereco_cep ON endereco(cep);
-CREATE INDEX idx_endereco_cidade ON endereco(cidade);
------INSERTS-----
+----- INSERTS -----
 
 -- CLIENTE
 INSERT INTO cliente (id, nome, email, telefone, cpf, senha)
@@ -132,20 +129,19 @@ VALUES (1, 1, 1, '2026-05-01', 'Em Processo', 40.00, 20.00);
 INSERT INTO endereco (cliente_id, rua, numero, bairro, cidade, estado, cep, complemento)
 VALUES (1, 'Rua das Flores', '123', 'Centro', 'Votorantim', 'SP', '18110-000', 'Casa');
 
------SELECT-----
+----- SELECTS-----
 
----detalhes e descricao do produto
+-- 1. Detalhes e descrição do produto
 SELECT nome, preco, descricao, estoque
 FROM produto
 WHERE id = 1;
 
----validade do cupom
+-- 2. Validade do cupom
 SELECT codigo, desconto
 FROM cupom
-WHERE codigo = 'BELLEVISAGE10' AND validade
->=DATE('now');
+WHERE codigo = 'BELLEVISAGE10' AND validade >= DATE('now');
 
----exibe o perfil do cliente e seu endereco
+-- 3. Exibe o perfil do cliente e seu endereço
 SELECT 
     c.nome, 
     c.email, 
@@ -159,7 +155,7 @@ FROM cliente c
 LEFT JOIN endereco e ON e.cliente_id = c.id
 WHERE c.id = 1;
 
----simplifica valor das compras
+-- 4. Simplifica valor das compras
 SELECT 
     subtotal, 
     frete, 
