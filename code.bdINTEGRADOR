@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS cupom (
 );
 
 -- 4. FORMA DE PAGAMENTO
-CREATE TABLE IF NOT EXISTS forma_de_pagamento (
+CREATE TABLE IF NOT EXISTS formapagamento (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tipo_de_pagamento TEXT NOT NULL
 );
@@ -110,7 +110,7 @@ INSERT INTO cupom (id, codigo, desconto, validade)
 VALUES (1, 'BELLEVISAGE10', 20.00, '2026-07-05');
 
 -- FORMA DE PAGAMENTO
-INSERT INTO forma_de_pagamento (id, tipo_de_pagamento)
+INSERT INTO formapagamento (id, tipo_de_pagamento)
 VALUES 
 (1, 'Cartão de Crédito'),
 (2, 'Cartão de Débito'),
@@ -131,17 +131,14 @@ VALUES (1, 'Rua das Flores', '123', 'Centro', 'Votorantim', 'SP', '18110-000', '
 
 ----- SELECTS-----
 
--- 1. Detalhes e descrição do produto
 SELECT nome, preco, descricao, estoque
 FROM produto
 WHERE id = 1;
 
--- 2. Validade do cupom
 SELECT codigo, desconto
 FROM cupom
 WHERE codigo = 'BELLEVISAGE10' AND validade >= DATE('now');
 
--- 3. Exibe o perfil do cliente e seu endereço
 SELECT 
     c.nome, 
     c.email, 
@@ -155,7 +152,6 @@ FROM cliente c
 LEFT JOIN endereco e ON e.cliente_id = c.id
 WHERE c.id = 1;
 
--- 4. Simplifica valor das compras
 SELECT 
     subtotal, 
     frete, 
