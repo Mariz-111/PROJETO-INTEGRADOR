@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS cliente (
   nome TEXT NOT NULL,
   telefone TEXT,
   cpf TEXT UNIQUE NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  senha TEXT NOT NULL
+  email TEXT UNIQUE NOT NULL
 );
 
 -- 2. PRODUTO
@@ -98,8 +97,8 @@ CREATE INDEX IF NOT EXISTS idx_endereco_cidade ON endereco(cidade);
 ----- INSERTS -----
 
 -- CLIENTE
-INSERT INTO cliente (id, nome, email, telefone, cpf, senha)
-VALUES (1, 'Fernando', 'fernando10@gmail.com', '13997097821', '123.456.789-00', 'senha_segura');
+INSERT INTO cliente (id, nome, email, telefone, cpf)
+VALUES (1, 'Fernando', 'fernando10@gmail.com', '13997097821', '123.456.789-00');
 
 -- PRODUTO
 INSERT INTO produto (id, nome, preco, estoque, descricao)
